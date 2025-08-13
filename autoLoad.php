@@ -53,6 +53,10 @@
             if($class=="interfaceBuilder"){
                 $className="interface/interfaceBuilder/".$className;
             }
+
+            if($class=="facade"){
+                $className="facade/".$className;
+            }
            
             if(file_exists($className)){
                 include "$className";

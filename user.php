@@ -9,6 +9,7 @@
      // $user=factoryClass :: makeObject("user");
      // $allUser=user :: select() ->where("age" , 24 ,">") ->limit(1 , 2) ->  get();
      $allUser = user:: all();
+     echo "<br>";
 
      $uriRouter=$_SERVER["REQUEST_URI"];
      $uriArr = explode("/", $uriRouter);

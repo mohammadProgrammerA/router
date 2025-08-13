@@ -1,7 +1,7 @@
 <?php
       
     class footer extends model  { 
-        protected static $table="footer";
+        protected $table="footer";
         public $numRows;
      
         // public function insertOrUpdate($data){

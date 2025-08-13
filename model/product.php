@@ -2,14 +2,19 @@
     
     class product extends model {
 
-        protected static $table="product";
+        protected  $table="product";
 
         protected $relateTo=["category"=>["categoryid" , "id"]];
         
 
-        public function category($fields=["id"]){
+
+
+
+        protected function category($fields=["id"]){
             return $this -> belongsTo(category::class , $fields);
         }
+
+        
         public function user($fields=["id"]){
             return $this -> belongsTo(user::class , $fields);
         }

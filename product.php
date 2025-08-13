@@ -1,17 +1,17 @@
 <?php
    
-    $product=factoryClass::makeObject("product");
-	$allProduct = $product ::all();
+   include ("uri.php");
+   
 
-	$uriRouter = $_SERVER["REQUEST_URI"];
-	$uriArr = explode("/", $uriRouter);
+   $allProduct = product ::all();
+
 
 
 	if($uriArr[count($uriArr) -2] == "page"){
 
 		$num_rows = $allProduct -> num_rows;
-		// $allProduct = product :: select()-> category(["title","id"]) ->pageInit($uriArr[4]) ->get();
 		$allProduct = product::with("category") ->pageInit($uriArr[4]) ->get();
+		// $allProduct = product::category("title") -> get();
 		
 		for($i = 0 ; $i < $num_rows/5; $i ++){
 	
@@ -26,34 +26,11 @@
 		}
 	}
 
-	// die();
-
-	// $allProduct =product::select(["id","nameproduct","price","color","caption","exist","categoryid"]) -> with(["categoryid"]) ->get();
-	// $allProduct =product::select() -> with(["categoryid"]) ->get();
-	// $allProduct =product::select() -> category(["title","id"]) ->get();
-	// $allProduct =product::select() -> with("category") ->get();
-	// $allProduct =product::select() -> user(["title","id"]) ->get();
-
-
 	
-	// $allProduct = product::with("category") ->get();
-
-
-
-	// foreach($allProduct as $row){
-	// 	echo $row["title"]. "<br>";
-	// }
-	// var_dump($allProduct );
-	// die();
+	
 
 	foreach($allProduct as $product){
-			// var_dump($product);
-			// die();
-		// $catResult=factoryClass::makeObject("category");
-		// $category = category::find($product['categoryid']);
-		
-		
-		// $rowCategory=$category->fetch_assoc();
+			
 ?>
 
 	<div style="width:1000px;height:72px;background-color:yellow;margin-top:20px;margin-left:250px;">

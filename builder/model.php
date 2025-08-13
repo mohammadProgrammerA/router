@@ -1,142 +1,24 @@
 <?php
     
-    class model extends mainDb implements interfaceBuilder {
+    class model extends facade implements interfaceBuilder {
     
         protected $type ; 
         protected $query ;
         protected $sub_query ;
-
-        public static function select(array $fields=["*"]){
-            
-            $select_field='';
-            $number = 0;
-
-            for($i = 0 ; $i <count($fields) ; $i ++){
-                $number ++;
-                $select_field .= $fields[$i];
-                if($number < count($fields)){
-                    $select_field .= "," ;
-                }
-            }
-
-            $className = static :: class;
-            $model = factoryClass :: makeObject($className);
-            $table = static :: $table;
-            
-            $model -> query = "SELECT $select_field ";
-
-            $model -> type = "select";
-            return $model;
-        }
-
-        protected function from(){
-            $table = static :: $table;
-            $from = "  FROM {$table} ";
-            $this -> from = $from;
-                return $this;
-        }
-        
-
-        public static function with($table){
-            $table_name = static :: $table;
-            $model = factoryClass :: makeObject($table_name);
-            
-            if(!$model -> type =="select"){
-                $table_name::select();
-            } 
-            
-            $model ->join($table);
-            $relatedTo = $model -> relateTo[$table];
-
-            $model ->where($relatedTo[0] , $table  . "." .$relatedTo[1] ,"=",true);
-            
-            return $model;
-            
-        }
-
-        public function join($table){
-            $this ->join = "LEFT JOIN {$table}";
-        }
-
-
-
-        public function belongsTo($tableName , $fields){
-            $query =  $this -> query;
-            $table = static :: $table;
-            $subQuerys = [];
-            $table_name = $tableName;
-            $subQuery ="";
-            foreach($fields as $field){
-                $field_name = $field;
-                $alias = $table_name ."_" . $field_name;
-                $model = factoryClass :: makeObject($table_name);
-                $parent_field = $this -> relateTo[$table_name  .".id"];
-                $query =  $table_name::select([$field_name])-> where( $table_name  .".id" ,$table .".".$parent_field ,"=") ->render();
-                $model -> where =[];
-                $subQuery =" , ($query ) {$alias}";
-            $number=0;
-            
-            $this -> sub_query .= " $subQuery  "; 
-        }
-            return $this;
-        }
-
-
-        public function count($table_name , $field_model){
-            $x = static ::class;
-            
-            
-            $model = $model = factoryClass :: makeObject($table_name);
-            $subQuery = $table_name :: select(["count(*)"]) -> from($table_name)->where($field_model ,$x . ".id" ,"=" ,true) ->render() ;
-            $this -> query .= ",(".$subQuery.")" ."  " . $table_name ."_count";
-            // echo $this -> query;
-            // die();
-            return $this;
-        }
-
-       
+        protected $from;
     
-        public static function all(){
 
-            $className = static::class;
-           
-            $model = factoryClass :: makeObject($className);
-            $table = static :: $table;
+        
+        protected function all(){
+
             $query = " SELECT * ";
-            $model -> type ="select";
-            $model -> query = $query;
-            // return $model;
-            return $model -> get();
-            // return $model -> connection->query($query);
+            $this -> type ="select";
+            $this -> query = $query;
+            return $this -> get();
 
         }
 
-
-        public static function find($id){
-
-            $className = static::class;
-            $table = static :: $table;
-            $model=factoryClass :: makeObject($className);
-            $findQ="SELECT * FROM {$table} WHERE id=".$id;
-            // var_dump($findQ);
-            // die();
-            return $model->connection->query($findQ);
-
-        }
-
-
-        public static function delete($id){
-
-            $className = static::class;
-            $model=factoryClass :: makeObject($className);
-            $table = static :: $table;
-            $deleteQ="DELETE FROM {$table} WHERE id=".$id;
-            
-            return $model->connection->query($deleteQ);
-
-        }
-
-        public static function create($data){
+        public function create($data){
             
             $fileds = "(";
             $field_data = "(";
@@ -153,16 +35,131 @@
             }
             $fileds .= ")";
             $field_data .= ")";
-            $table = static :: $table;
-            $className = static::class;
-            $model=factoryClass :: makeObject($className);
+            $insertQuery="INSERT INTO {$this ->table}  $fileds VALUES $field_data";
+            $this -> query = $insertQuery;
+            return $this -> get();
             
-            $insertQuery="INSERT INTO {$table}  $fileds VALUES $field_data";
+        }
+
+        protected function select(array $fields=["*"]){
+            if(empty($fields)){
+                $fields=["*"];
+            }
             
-            return $model->connection->query($insertQuery); 
+            $select_field='';
+            $number = 0;
+
+            for($i = 0 ; $i <count($fields) ; $i ++){
+                $number ++;
+                $select_field .= $fields[$i];
+                if($number < count($fields)){
+                    $select_field .= "," ;
+                }
+            }
+            
+            $this -> query = "SELECT $select_field ";
+            $this -> type = "select";
+
+            return $this;
+        }
+
+        protected function from(){
+            
+            $from = " FROM {$this ->table} ";
+
+            $this -> from = $from;
+                return $this;
+
         }
         
-        public static function update($data){
+        protected function with($table){
+          
+            if(!$this -> type =="select"){
+                $this -> select();
+            } 
+            
+            $this ->join($table[0]);
+
+            $relatedTo = $this -> relateTo[$table[0]];
+
+            $this ->where($relatedTo[0] , $table[0]  . "." .$relatedTo[1] ,"=",true);
+            
+            return $this;
+            
+        }
+
+        protected function join($table){
+            $this ->join = "LEFT JOIN {$table}";
+        }
+
+
+
+        protected function belongsTo($tableName , $fields){
+
+            if($this -> type !="select"){
+                $this -> select();
+            }
+
+            $query =  $this -> query;
+            $subQuery ="";
+
+            foreach($fields as $field){
+                $field_name = $field;
+                $alias = $tableName ."_" . $field_name;
+
+                $model = factoryClass :: makeObject($tableName);
+
+                $parent_field = $this -> relateTo[$tableName];
+               
+                $query =  $model  ->select([$field_name])-> where( $tableName  .".id" ,$this ->table .".".$parent_field[0],"=") ->render();
+               
+                $subQuery =" , ($query ) {$alias}";
+                $this -> sub_query .= " $subQuery  "; 
+            
+            }
+            
+            return $this;
+        }
+
+        protected function count($data){
+
+            if($this -> type !="select"){
+                $this -> select();
+            }
+
+            $model = $model = factoryClass :: makeObject($data[0]);
+            $subQuery = $model -> select(["count(*)"]) -> from($data[0])->where($data[1] ,$this -> table. ".id" ,"=" ,true) ->render() ;
+            $this -> query .= ",(".$subQuery.")" ."  " . $data[0] ."_count";
+            
+            return $this;  
+
+        }
+
+        public function find($id){
+           
+            $this -> select();
+            $this -> where("id",$id);
+            
+            return $this ->get();
+
+        }
+
+
+
+
+
+        public function delete($id){
+
+            $deleteQ="DELETE FROM {$this ->table} WHERE id=".$id;
+            $this -> query = $deleteQ;
+            return $this -> get();
+
+        }
+
+        
+        
+        
+        public function update($data){
             $idEdite=$data['idEdite'];
             $field_data = "";
             $number = 0;
@@ -178,12 +175,13 @@
                 }
             }
             
-            $table = static :: $table;
-            $updateQuery="UPDATE {$table} SET $field_data WHERE id=".$idEdite;
-            $className = static::class;
-            $model = factoryClass :: makeObject($className);
+            
+            $updateQuery="UPDATE {$this -> table} SET $field_data WHERE id=".$idEdite;
+            
+            $this -> query = $updateQuery;
+
            
-            return $model->connection->query($updateQuery);
+            return $this ->get();
 
         }
 
@@ -216,29 +214,30 @@
 
         public function pageInit($number){
 
-            // $className = static::class;
-            // $model = factoryClass :: makeObject($className);
-            // $table = static :: $table;
-            
             $limit = ($number -1) * 5 ;
             $query = " LIMIT $limit , 5 ";
             $this -> limit = $query;
             return $this;
-            // return $model->connection->query($query);
+          
             
         } 
 
 
         public function render(){
             $query = $this -> query;
-           
+        
+            
             if (!empty($this->pageInit)) {
                 $query .= $this->pageInit;
             }
+
+    
             if($this -> type =="select"){
                 $this -> from();
+                
             }
             if(!empty($this->sub_query)){
+        
                 $query .= $this->sub_query;
             }
             
@@ -259,6 +258,7 @@
             if (isset($this ->limit)) {
                 $query .= $this->limit;
             }
+           
             return $query;
           
         }
@@ -269,11 +269,7 @@
         public function get(){
          
             $query = $this -> render();
-            echo "<br><br>";
-
-            var_dump($query);
-            echo "<br><br>";
-            return $this->connection->query($query);
+            return mainDb::get($query);
         }
 
 

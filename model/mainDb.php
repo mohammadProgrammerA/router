@@ -1,18 +1,19 @@
 <?php
    
     class mainDb implements mainFuncs{
-        protected  $connection;
-
-        protected static $table;
-
-        private $serverName="localhost";
-        private $userName="root";
-        private $password="";
-        private $dbName="ecommerce";
+        // protected static $connection;
+        private static $serverName="localhost";
+        private static  $userName="root";
+        private static $password="";
+        private static $dbName="ecommerce";
         
-        function __construct(){
+        public static function get($query){
+
+            echo $query;
             
-                $this->connection=new mysqli($this->serverName,$this->userName,$this->password,$this->dbName);
+                $mysqli=new mysqli(self::$serverName,self::$userName,self::$password,self::$dbName);
+
+                return $mysqli -> query($query);
             
         }
         

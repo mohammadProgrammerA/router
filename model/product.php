@@ -4,6 +4,22 @@
 
         protected static $table="product";
 
+        protected $relateTo=["category"=>["categoryid" , "id"]];
+        
+
+        public function category($fields=["id"]){
+            return $this -> belongsTo(category::class , $fields);
+        }
+        public function user($fields=["id"]){
+            return $this -> belongsTo(user::class , $fields);
+        }
+
+
+
+
+
+
+
         public static function sort_product_max($az,$ta){
 
             self::select();
@@ -60,7 +76,7 @@
         
         for($i=0;$i < count($product_rows) -1;$i++){
             
-            for($j=0;$j < count($product_rows) -1 - $i;$j++){
+            for($j=0;$j < count($product_rows) -1 - $i  ;$j++){
                 if($product_rows[$j]['price'] <= $product_rows[$j+1]['price']){
                     $x = $product_rows[$j];
                     $product_rows[$j] = $product_rows[$j+1] ;
